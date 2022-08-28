@@ -13,7 +13,7 @@
 do
     ---@type Simulator -- Set properties and screen sizes here - will run once when the script is loaded
     simulator = simulator
-    simulator:setScreen(1, "3x3")
+    simulator:setScreen(1, "1x1")
     simulator:setProperty("ExampleNumberProperty", 123)
 
     -- Runs every tick just before onTick; allows you to simulate the inputs changing
@@ -30,12 +30,12 @@ do
         simulator:setInputNumber(4, screenConnection.touchY)
 
         -- NEW! button/slider options from the UI
-        simulator:setInputBool(31, simulator:getIsClicked(1))       -- if button 1 is clicked, provide an ON pulse for input.getBool(31)
-        simulator:setInputNumber(31, simulator:getSlider(1))        -- set input 31 to the value of slider 1
+        simulator:setInputBool(31, simulator:getIsClicked(1)) -- if button 1 is clicked, provide an ON pulse for input.getBool(31)
+        simulator:setInputNumber(31, simulator:getSlider(1)) -- set input 31 to the value of slider 1
 
-        simulator:setInputBool(32, simulator:getIsToggled(2))       -- make button 2 a toggle, for input.getBool(32)
-        simulator:setInputNumber(32, simulator:getSlider(2) * 50)   -- set input 32 to the value from slider 2 * 50
-    end;
+        simulator:setInputBool(32, simulator:getIsToggled(2)) -- make button 2 a toggle, for input.getBool(32)
+        simulator:setInputNumber(32, simulator:getSlider(2) * 50) -- set input 32 to the value from slider 2 * 50
+    end
 end
 ---@endsection
 
@@ -51,8 +51,11 @@ function onTick()
 end
 
 function onDraw()
-    screen.drawCircle(16,16,5)
+    scrW = screen.getWidth()
+    scrH = screen.getHeight()
+    screen.setColor(255, 255, 255, 127)
+    screen.drawCircle(scrW / 2, scrH / 2, 5)
+    screen.setColor(255, 255, 255, 191)
+    screen.drawRectF(scrW / 2, scrH / 2, 1, 1)
+    screen.drawRectF(scrW / 2 - 1, scrH / 2 - 1, 1, 1)
 end
-
-
-
