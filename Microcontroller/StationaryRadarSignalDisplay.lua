@@ -25,28 +25,21 @@ do
     ---@param ticks     number Number of ticks since simulator started
     function onLBSimulatorTick(simulator, ticks)
 
-        -- touchscreen defaults
-        local screenConnection = simulator:getTouchScreen(1)
-        simulator:setInputBool(3, simulator:getIsToggled(3))
-        simulator:setInputNumber(9, screenConnection.width)
-        simulator:setInputNumber(10, screenConnection.height)
-        simulator:setInputNumber(11, screenConnection.touchX)
-        simulator:setInputNumber(12, screenConnection.touchY)
-
         simulator:setInputBool(1, simulator:getIsToggled(1))
-        simulator:setInputNumber(1, simulator:getSlider(1) * 3000)
+        simulator:setInputNumber(1, simulator:getSlider(1) * 5000)
         simulator:setInputNumber(2, (simulator:getSlider(2) - 0.5))
         simulator:setInputNumber(3, (simulator:getSlider(3) - 0.5))
         simulator:setInputNumber(4, (simulator:getSlider(4) - 0.5))
-
         for i = 2, 8, 1 do
-            simulator:setInputBool(i, false)
+            simulator:setInputBool(i, math.random() > 0.5)
+            simulator:setInputNumber(i * 4 - 3, math.random() * 5000)
+            simulator:setInputNumber(i * 4 - 2, math.random() - 0.5)
+            simulator:setInputNumber(i * 4 - 1, math.random() / 2)
         end
-
-
-        simulator:setInputNumber(8, simulator:getSlider(8)) -- set input 31 to the value of slider 10
-        simulator:setInputNumber(12, simulator:getSlider(9)) -- set input 31 to the value of slider 10
-        simulator:setInputNumber(16, simulator:getSlider(10)) -- set input 31 to the value of slider 10
+        simulator:setInputNumber(8, simulator:getSlider(7) * 10000 + 1)
+        simulator:setInputNumber(12, simulator:getSlider(8))
+        simulator:setInputNumber(16, simulator:getSlider(9))
+        simulator:setInputNumber(20, simulator:getSlider(10))
     end
 end
 ---@endsection
@@ -58,12 +51,9 @@ end
 -- the "LifeBoatAPI" is included by default in /_build/libs/ - you can use require("LifeBoatAPI") to get this, and use all the LifeBoatAPI.<functions>!
 
 rAngle = 0
-rSweep = 0
-YFOV = 0
-
+maxDist = 20000
 maxTargets = 8
-maxDist = 3200
-minOpacity = 127
+minOpacity = 192
 targets = {}
 function onTick()
     for i = 1, maxTargets, 1 do
@@ -81,40 +71,40 @@ function onTick()
         end
     end
     rAngle = input.getNumber(4) -- get radar current rotation
-    if rAngle > 0.5 then
-        rAngle = rAngle - 1
-    end
-    rSweep = input.getNumber(8) -- get radar covered azimuth angle
-    YFOV = input.getNumber(12) -- get radar covered azimuth angle
+    maxDist = input.getNumber(8) -- get radar covered max distance
 end
 
 function onDraw()
     scrH = screen.getHeight()
     scrW = screen.getWidth()
+    drawRadius = (math.min(scrH, scrW) - 2) / 2
     screen.setColor(63, 255, 63, 255) -- Light green
-    screen.drawRect(2, 8, scrW - 5, scrH - 10)
+    screen.drawCircle(scrW / 2, scrH / 2, drawRadius)
     screen.setColor(63, 255, 63, 63) -- Light green,25% opaque
-    screen.drawLine(1 + scrW / 3, 9, 1 + scrW / 3, scrH - 2)
-    screen.drawLine(scrW * 2 / 3 - 1, 9, scrW * 2 / 3 - 1, scrH - 2)
-    screen.drawLine(3, (scrH - 13) / 2 + 10, scrW - 3, (scrH - 13) / 2 + 10)
-    -- draw radar rotation angle
-    screen.setColor(255, 63, 63, 255) -- Light Red
-    screen.drawTextBox(0, 0, 10, 4, tostring(math.floor(rSweep * 180)), 0, -1)
-    screen.setColor(63, 255, 63, 255) -- Light green
-    screen.drawTextBox(scrW - 9, 0, 10, 4, tostring(math.floor(rSweep * 180)), 0, -1)
-    -- draw radar current scan line
-    scanLineX = (scrW - 7) * (rAngle / rSweep) + scrW / 2
-    screen.setColor(255, 63, 63, 127) -- Light Red
-    screen.drawLine(scanLineX, 9, scanLineX, scrH - 2)
+    screen.drawLine(scrW / 2, 0, scrW / 2, scrH)
+    screen.drawLine(0, scrH / 2, scrW, scrH / 2)
+    -- draw radar current scan line, but cooler
+    for i = 0, 4, 1 do
+        screen.setColor(255, 63, 63, 128 - 16 * i) -- Light Red
+        screen.drawLine(scrW / 2, scrH / 2, -math.sin(rAngle * 2 * math.pi - 0.05 * i) * drawRadius + scrW / 2,
+            math.cos(rAngle * 2 * math.pi - 0.05 * i) * drawRadius + scrH / 2)
+    end
     -- draw target location
     for i = 1, maxTargets, 1 do
         if targets[i][1] then
-            targetX = (scrW - 7) * ((targets[i][3]) / rSweep) + scrW / 2
-            targetY = (scrH - 12) * (-targets[i][4] / (YFOV / 2)) + (scrH - 13) / 2 + 10
+            targetAlt = math.sin(targets[i][4] * 2 * math.pi) * targets[i][2]
+            targetHDist = math.cos(targets[i][4] * 2 * math.pi) * targets[i][2]
+            targetX = -math.sin(targets[i][3] * 2 * math.pi) * (targetHDist / maxDist) * drawRadius + scrW / 2
+            targetY = math.cos(targets[i][3] * 2 * math.pi) * (targetHDist / maxDist) * drawRadius + scrH / 2
             screen.setColor(255, 255, 255,
-                math.floor(minOpacity + (255 - minOpacity) * (1 - (targets[i][2] / maxDist)))) -- fainter color when further, >= minOpacity
-            screen.drawRectF(targetX - 1, targetY - 1, 1, 1)
-            screen.drawRectF((scrW - maxTargets) / 2 + i, 0, 1, 1)
+                math.min(255, math.floor(minOpacity + (255 - minOpacity) * (1 - (targetHDist / maxDist))))) -- fainter color when further, >= minOpacity
+            if drawRadius > 32 then
+                screen.drawRectF(targetX - 1, targetY - 1, 2, 2)
+            else
+                screen.drawRectF(targetX - 1, targetY - 1, 1, 1)
+            end
+            screen.setColor(191, 191, 191, 127)
+            screen.drawText(targetX, targetY, tostring(math.floor(targetAlt)))
         end
     end
 end

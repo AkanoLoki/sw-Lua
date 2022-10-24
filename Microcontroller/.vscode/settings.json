@@ -38,8 +38,8 @@
     "Lua.runtime.pathStrict": true,
     "Lua.workspace.library": [
         "g:/GitHub/sw-Lua/Microcontroller/",
-        "c:/Users/Administrator/.vscode/extensions/nameouschangey.lifeboatapi-0.0.31/assets/lua/Common/",
-        "c:/Users/Administrator/.vscode/extensions/nameouschangey.lifeboatapi-0.0.31/assets/lua/Microcontroller/",
+        "c:/Users/Administrator/.vscode/extensions/nameouschangey.lifeboatapi-0.0.32/assets/lua/Common/",
+        "c:/Users/Administrator/.vscode/extensions/nameouschangey.lifeboatapi-0.0.32/assets/lua/Microcontroller/",
         "g:/GitHub/sw-Lua/Microcontroller/_build/libs/"
     ],
     "lifeboatapi.stormworks.libs.gitLibraries": [
